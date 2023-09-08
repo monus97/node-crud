@@ -3,8 +3,9 @@ const user = require("../models/userModel");
 
 const userRegister = async (req, res) => {
     try {
-      const newUser = new user(req.body);
-      if (!newUser.name || !newUser.email || !newUser.password) {
+        const { name, email, password } = req.body;
+      
+      if (!name || !email || !password) {
         return res.status(400).json({ message: "Please fill all the fields" });
       }
       const oldUser = await user.findOne({ email: req.body.email });
