@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const productRouter = require("./routes/productRouter");
+const userRouter = require("./routes/userRouter");
 const cors = require("cors");
 
 require("./models/config");
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/", productRouter);
+app.use("/", userRouter);
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port : ${process.env.PORT}`);
 });

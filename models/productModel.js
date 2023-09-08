@@ -8,6 +8,10 @@ const productSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+    },
   },
   {
     timestamps: true,
