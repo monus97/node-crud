@@ -2,6 +2,9 @@ const secure = require("../bcrypt/bcrypt");
 const user = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+
+
+
 const userRegister = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -71,7 +74,60 @@ const loginUser = async (req, res) => {
   }
 };
 
+const userUpdateHisProfile = async (req, res) => {
+  try {
+    const id = req.user._id;
+
+    const { name, email } = req.body;
+    const payload = {
+      name,
+      email,
+    };
+    const updatedUser = await user
+      .findByIdAndUpdate(id, payload, {
+        new: true,
+      })
+      .select("-__v -password");
+
+    if (updatedUser != null) {
+      const update = await updatedUser.save();
+      res.status(200).json({
+        message: "updated successfull",
+        updatedData: update,
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+const getUserById = async (req, res) => {
+  try{
+
+
+  const id = req.user._id;
+  const userDetails = await user.findById(id).select("-__v -password");
+  if (!userDetails) {
+    return res.status(400).json({
+      message: "some-thing went wrong",
+    });
+  }
+  res.status(200).json({
+    success: true,
+    userDetails: userDetails,
+  });
+}catch (error) {
+  res.status(400).json({
+    message: error.message,
+  });
+}
+};
+
 module.exports = {
   userRegister,
   loginUser,
+  userUpdateHisProfile,
+  getUserById
 };

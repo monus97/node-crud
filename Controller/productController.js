@@ -1,58 +1,84 @@
-const product = require("../models/productModel");
+const post = require("../models/productModel");
 
-const addProduct = async (req, res) => {
+const addPost = async (req, res) => {
   try {
+    const id = req.user._id;
     const { title, description } = req.body;
-    console.log(req.body)
-    const newProduct = new product({
-      title,
-      description,
+    if (!title || !description) {
+      return res.status(400).json({ message: "Please fill all the fields" });
+    }
+    const Product = await post.findOne({ title: req.body.title });
+    if (Product) {
+      return res.status(400).json({ message: "title is already exits " });
+    }
+    const newProduct = new post({
+      title: title,
+      description: description,
+      creator: id,
     });
     const savedProduct = await newProduct.save();
-    res.status(201).json(savedProduct);
+    res.status(201).json({
+      message: "New Post Added Successfully",
+      savedProduct,
+    });
   } catch (error) {
     res.status(400).json({
       message: error.message,
     });
   }
 };
-const getProduct = async (req, res) => {
+
+const getPost = async (req, res) => {
   try {
-    const AllProducts = await product.find({});
-    res.status(201).json(AllProducts);
-  } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
-  }
-};
-const getProductById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const AllProducts = await product.findById({ _id: id });
-    if(AllProducts){
- res.status(201).json(AllProducts);
-    }else{
-        res.status(400).json({
-            message: "Product not found"
-        })
+    const findAllPosts = await post.find({}).populate("creator", { name: 1 });
+    if (findAllPosts.length === 0) {
+      return res.status(400).json({
+        message: "no posts",
+      });
     }
-   
+    res.status(201).json({
+      status: "success",
+      details: findAllPosts,
+    });
   } catch (error) {
     res.status(400).json({
       message: error.message,
     });
   }
 };
-const deleteProductById = async (req, res) => {
+
+const getPostById = async (req, res) => {
   try {
     const { id } = req.params;
-    const AllProducts = await product.findByIdAndDelete({ _id: id });
-    if (AllProducts) {
-      res.status(201).json({ message: "Product Deleted Successfully" });
+    const getPost = await post
+      .findOne({ _id: id })
+      .populate("creator", { name: 1 });
+
+    if (getPost === null) {
+      return res.status(400).json({
+        message: "no posts",
+      });
+    }
+    res.status(200).json({
+      status: "success",
+      details: getPost,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+const deletePostById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const AllProducts = await post.findByIdAndDelete({ _id: id });
+    if (!AllProducts) {
+      return res.status(400).json({ message: "Post not found" });
     } else {
       res.status(201).json({
-        message: "product not found",
+        message: "post  successfully deleted",
       });
     }
   } catch (error) {
@@ -61,21 +87,62 @@ const deleteProductById = async (req, res) => {
     });
   }
 };
-const updateProductById = async (req, res) => {
+
+const userOwnPosts = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const author = req.user._id;
+    const getPost = await post
+      .find({ creator: author })
+      .populate("creator", { name: 1 });
+    console.log(getPost);
+    if (getPost.length === 0) {
+      return res.status(400).json({
+        message: "you have not any posts ",
+      });
+    }
+    res.status(200).json({
+      status: "success",
+      details: getPost,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+const updatePostById = async (req, res) => {
+  try {
+    const userId = req.user._id;
     const { id } = req.params;
-    const AllProducts = await product.findByIdAndUpdate({ _id: id }, req.body, {
+    const findUser = await post.findById(id);
+    if (!findUser) {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+    if (userId.toString() !== findUser.creator.toString()) {
+      return res.status(400).json({
+        message: "you are not authorized for editing this post ",
+      });
+    }
+    const { title, description } = req.body;
+    const payload = {
+      title,
+      description,
+    };
+    const AllProducts = await post.findByIdAndUpdate({ _id: id }, payload, {
       new: true,
     });
-    if (AllProducts) {
+    if (!AllProducts) {
+      return res.status(201).json({
+        message: "Post not found",
+      });
+    } else {
       const Product = await AllProducts.save();
       res.status(201).json({
-        updatedProduct : Product,
-        message: "Product update Successfully" });
-    } else {
-      res.status(201).json({
-        message: "product not found",
+        updatedProduct: Product,
+        message: "Post update Successfully",
       });
     }
   } catch (error) {
@@ -86,9 +153,10 @@ const updateProductById = async (req, res) => {
 };
 
 module.exports = {
-  addProduct,
-  getProduct,
-  getProductById,
-  deleteProductById,
-  updateProductById,
+  addPost,
+  getPost,
+  getPostById,
+  deletePostById,
+  userOwnPosts,
+  updatePostById,
 };
