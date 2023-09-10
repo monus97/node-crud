@@ -1,33 +1,77 @@
 const secure = require("../bcrypt/bcrypt");
 const user = require("../models/userModel");
-
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const userRegister = async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
-      
-      if (!name || !email || !password) {
-        return res.status(400).json({ message: "Please fill all the fields" });
-      }
-      const oldUser = await user.findOne({ email: req.body.email });
-      if (!oldUser) {
-  newUser.password = await secure(newUser.password)
-        const User = await newUser.save();
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Please fill all the fields" });
+    }
+    const oldUser = await user.findOne({ email: req.body.email });
+    if (!oldUser) {
+      const hashedPassword = await secure(password);
+      const newUser = await user.create({
+        name: name,
+        email: email,
+        password: hashedPassword,
+      });
+      const User = await newUser.save();
       return res.status(409).json({
         message: "success",
-        User
+        User,
       });
-      } else {
-        res.status(409).json({
-          message: "user Already exits please login",
-        });
-      }
-    } catch (error) {
-      res.status(400).json({
-        message: error.message,
+    } else {
+      return res.status(409).json({
+        message: "user Already exits please login",
       });
     }
-  };
-
-  module.exports = {
-    userRegister
+  } catch (error) {
+    res.status(400).json({
+      message: error.message,
+    });
   }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Please enter all fields!",
+      });
+    }
+
+    const checkEmail = await user.findOne({ email: req.body.email });
+    if (!checkEmail) {
+      return res.status(400).json({
+        message: "Invalid Email or Password",
+      });
+    }
+    const isMatch = await bcrypt.compare(password, checkEmail.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Invalid Email or Password",
+      });
+    }
+    checkEmail.password = undefined;
+    const token = jwt.sign({ id: checkEmail._id }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+    res.status(200).json({
+      status: "success",
+      token,
+      userDetails: checkEmail,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+module.exports = {
+  userRegister,
+  loginUser,
+};
