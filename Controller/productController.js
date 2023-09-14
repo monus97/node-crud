@@ -117,7 +117,7 @@ const updatePostById = async (req, res) => {
     const { id } = req.params;
     const findUser = await post.findById(id);
     if (!findUser) {
-      return res.status(404).json({
+      return res.status(400).json({
         message: "Post not found",
       });
     }
@@ -135,7 +135,7 @@ const updatePostById = async (req, res) => {
       new: true,
     });
     if (!AllProducts) {
-      return res.status(201).json({
+      return res.status(400).json({
         message: "Post not found",
       });
     } else {

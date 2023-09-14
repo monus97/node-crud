@@ -21,13 +21,13 @@ const userRegister = async (req, res) => {
         password: hashedPassword,
       });
       const User = await newUser.save();
-      return res.status(409).json({
+      return res.status(201).json({
         message: "success",
         User,
       });
     } else {
       return res.status(409).json({
-        message: "user Already exits please login",
+        message: "you are already registered please login",
       });
     }
   } catch (error) {
