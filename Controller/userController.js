@@ -120,25 +120,7 @@ const getUserById = async (req, res) => {
     });
   }
 };
-// const get = async (req, res) => {
-//   try {
-//     const id = req.user._id;
-//     const userDetails = await user.findById(id).select("-__v -password");
-//     if (!userDetails) {
-//       return res.status(400).json({
-//         message: "some-thing went wrong",
-//       });
-//     }
-//     res.status(200).json({
-//       success: true,
-//       userDetails: userDetails,
-//     });
-//   } catch (error) {
-//     res.status(400).json({
-//       message: error.message,
-//     });
-//   }
-// };
+
 
 module.exports = {
   userRegister,
