@@ -3,8 +3,6 @@ const user = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-
-
 const userRegister = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -21,6 +19,7 @@ const userRegister = async (req, res) => {
         password: hashedPassword,
       });
       const User = await newUser.save();
+      User.password = undefined;
       return res.status(201).json({
         message: "success",
         User,
@@ -60,12 +59,11 @@ const loginUser = async (req, res) => {
     }
     checkEmail.password = undefined;
     const token = jwt.sign({ id: checkEmail._id }, process.env.JWT_SECRET, {
-      expiresIn: "30d",
+      expiresIn: "1d",
     });
     res.status(200).json({
       status: "success",
       token,
-      userDetails: checkEmail,
     });
   } catch (error) {
     res.status(400).json({
@@ -104,30 +102,28 @@ const userUpdateHisProfile = async (req, res) => {
 };
 
 const getUserById = async (req, res) => {
-  try{
-
-
-  const id = req.user._id;
-  const userDetails = await user.findById(id).select("-__v -password");
-  if (!userDetails) {
-    return res.status(400).json({
-      message: "some-thing went wrong",
+  try {
+    const id = req.user._id;
+    const userDetails = await user.findById(id).select("-__v -password");
+    if (!userDetails) {
+      return res.status(400).json({
+        message: "some-thing went wrong",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      userDetails: userDetails,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error.message,
     });
   }
-  res.status(200).json({
-    success: true,
-    userDetails: userDetails,
-  });
-}catch (error) {
-  res.status(400).json({
-    message: error.message,
-  });
-}
 };
 
 module.exports = {
   userRegister,
   loginUser,
   userUpdateHisProfile,
-  getUserById
+  getUserById,
 };

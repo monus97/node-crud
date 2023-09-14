@@ -9,7 +9,7 @@ const addPost = async (req, res) => {
     }
     const Product = await post.findOne({ title: req.body.title });
     if (Product) {
-      return res.status(400).json({ message: "title is already exits " });
+      return res.status(400).json({ message: "this title is already taken " });
     }
     const newProduct = new post({
       title: title,
@@ -19,7 +19,7 @@ const addPost = async (req, res) => {
     const savedProduct = await newProduct.save();
     res.status(201).json({
       message: "New Post Added Successfully",
-      savedProduct,
+     details : savedProduct,
     });
   } catch (error) {
     res.status(400).json({
@@ -33,7 +33,7 @@ const getPost = async (req, res) => {
     const findAllPosts = await post.find({}).populate("creator", { name: 1 });
     if (findAllPosts.length === 0) {
       return res.status(400).json({
-        message: "no posts",
+        message: "no posts to show",
       });
     }
     res.status(201).json({
@@ -56,7 +56,7 @@ const getPostById = async (req, res) => {
 
     if (getPost === null) {
       return res.status(400).json({
-        message: "no posts",
+        message: "Post not found ",
       });
     }
     res.status(200).json({
@@ -122,8 +122,8 @@ const updatePostById = async (req, res) => {
       });
     }
     if (userId.toString() !== findUser.creator.toString()) {
-      return res.status(400).json({
-        message: "you are not authorized for editing this post ",
+      return res.status(409).json({
+        message: "you are not authorized for edit this post ",
       });
     }
     const { title, description } = req.body;
