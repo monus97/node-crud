@@ -5,7 +5,7 @@ const verifyToken = async (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization) {
-    return res.status(401).json({ error: "only auth" });
+    return res.status(401).json({ error: "only authorized person" });
   }
   const token = await authorization.replace("Bearer ", "");
 
